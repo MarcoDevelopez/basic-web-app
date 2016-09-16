@@ -8,7 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import tutorial.core.entities.BlogEntry;
+import tutorial.core.models.entities.BlogEntry;
 import tutorial.core.services.BlogEntryService;
 import tutorial.rest.mvc.BlogEntryController;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,7 +35,7 @@ public class BlogEntryControllerTest {
 
 	@Test
 	public void getExistingBlogEntry() throws Exception {
-		when(service.find(1L)).thenReturn(null);
+		when(service.findBlogEntry(1L)).thenReturn(null);
 		
 		mockMvc.perform(get("/rest/blog-entries/1"))
 						.andExpect(status().isNotFound());
