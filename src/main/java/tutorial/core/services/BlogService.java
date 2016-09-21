@@ -19,6 +19,6 @@ public interface BlogService {
 	
 	public BlogEntryList findAllBlogEntries(Long blogId);
 	
-	public Blog findBlog(Long eq);
+	public Blog findBlog(Long id);
 	
 }

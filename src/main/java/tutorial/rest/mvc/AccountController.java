@@ -1,7 +1,10 @@
 package tutorial.rest.mvc;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,17 +13,24 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import tutorial.core.models.entities.Account;
 import tutorial.core.models.entities.Blog;
 import tutorial.core.services.AccountService;
 import tutorial.core.services.exceptions.AccountDoesNotExistException;
 import tutorial.core.services.exceptions.BlogExistsException;
+import tutorial.core.services.util.AccountList;
+import tutorial.core.services.util.BlogList;
 import tutorial.rest.exceptions.BadRequestException;
 import tutorial.rest.exceptions.ConflictException;
+import tutorial.rest.exceptions.NotFoundException;
+import tutorial.rest.resources.AccountListResource;
 import tutorial.rest.resources.AccountResource;
+import tutorial.rest.resources.BlogListResource;
 import tutorial.rest.resources.BlogResource;
 import tutorial.rest.resources.asm.AccountResourceAsm;
+import tutorial.rest.resources.asm.BlogListResourceAsm;
 import tutorial.rest.resources.asm.BlogResourceAsm;
 
 @Controller
@@ -28,9 +38,26 @@ import tutorial.rest.resources.asm.BlogResourceAsm;
 public class AccountController {
 
 	private AccountService accountService;
-
+	
+	@Autowired
 	public AccountController(AccountService accountService) {
 		this.accountService = accountService;
+	}
+	
+	@RequestMapping(method = RequestMethod.GET)
+	public ResponseEntity<AccountListResource> findAllAccounts(@RequestParam(value = "name", required = false) String name) {
+		AccountList list = null;
+		if (name == null) {
+			list = accountService.findAllAccounts();
+		} else {
+			Account account = accountService.findByAccountName(name);
+			if (account == null) {
+				list = new AccountList(new ArrayList<Account>());
+			} else 
+				list = new AccountList(Arrays.asList(account));
+		}
+		AccountListResource res = new AccountListResourceAsm().toResource(list);
+		return new ResponseEntity<AccountListResource>(res, HttpStatus.OK);
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
@@ -39,7 +66,7 @@ public class AccountController {
 			Account createdAccount = accountService.createAccount(sentAccount.toAccount());
 			AccountResource res = new AccountResourceAsm().toResource(createdAccount);
 			HttpHeaders headers = new HttpHeaders();
-			headers.setLocation(URI.create(res.getLink("selft").getHref()));
+			headers.setLocation(URI.create(res.getLink("self").getHref()));
 			return new ResponseEntity<AccountResource>(res, headers, HttpStatus.CREATED);
 		} catch (Exception e) {
 			throw new ConflictException(e);
@@ -57,7 +84,7 @@ public class AccountController {
 		}
 	}
 	
-	
+	@RequestMapping(value = "/{accountId}/blogs", method = RequestMethod.POST)
 	public ResponseEntity<BlogResource> createBlog(@PathVariable Long accountId, @RequestBody BlogResource res) {
 		try {
 			Blog createdBlog = accountService.createBlog(accountId, res.toBlog());
@@ -69,6 +96,17 @@ public class AccountController {
 			throw new BadRequestException(e);
 		} catch (BlogExistsException e) {
 			throw new ConflictException(e);
+		}
+	}
+	
+	@RequestMapping(value = "/{accountId}/blogs", method = RequestMethod.GET)
+	public ResponseEntity<BlogListResource> findAllBlogs(@PathVariable Long accountId) {
+		try {
+			BlogList blogList = accountService.findBlogsByAccount(accountId);
+			BlogListResource blogListRes = new BlogListResourceAsm().toResource(blogList);
+			return new ResponseEntity<BlogListResource>(blogListRes, HttpStatus.OK);
+		} catch (AccountDoesNotExistException e) {
+			throw new NotFoundException(e);
 		}
 	}
 	
