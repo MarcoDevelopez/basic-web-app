@@ -11,6 +11,8 @@
 								        http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:component-scan base-package="tutorial.rest.mvc"/>
+	
+	<mvc:resources location="/app/build/" mapping="/app/**"/>
 
 	<mvc:annotation-driven/>
 
