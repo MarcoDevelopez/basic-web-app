@@ -1,13 +1,13 @@
-package tutorial.rest.mvc;
+package tutorial.rest.resources.asm;
 
 import java.util.List;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 
 import tutorial.core.services.util.AccountList;
+import tutorial.rest.mvc.AccountController;
 import tutorial.rest.resources.AccountListResource;
 import tutorial.rest.resources.AccountResource;
-import tutorial.rest.resources.asm.AccountResourceAsm;
 
 public class AccountListResourceAsm extends ResourceAssemblerSupport<AccountList, AccountListResource> {
 

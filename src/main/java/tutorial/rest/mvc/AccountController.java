@@ -29,6 +29,7 @@ import tutorial.rest.resources.AccountListResource;
 import tutorial.rest.resources.AccountResource;
 import tutorial.rest.resources.BlogListResource;
 import tutorial.rest.resources.BlogResource;
+import tutorial.rest.resources.asm.AccountListResourceAsm;
 import tutorial.rest.resources.asm.AccountResourceAsm;
 import tutorial.rest.resources.asm.BlogListResourceAsm;
 import tutorial.rest.resources.asm.BlogResourceAsm;
