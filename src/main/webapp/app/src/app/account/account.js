@@ -1,4 +1,4 @@
-angular.module('ngBoilerplate.account', ['ui.router'])
+angular.module('ngBoilerplate.account', ['ui.router', 'ngResource'])
 .config(function($stateProvider) {
 	$stateProvider.state('login', {
 		url: '/login',
@@ -21,13 +21,60 @@ angular.module('ngBoilerplate.account', ['ui.router'])
 		data: {pageTitle: "Registration"}
 	});
 })
-.controller('LoginCtrl', function($scope) {
+.factory('sessionService', function() {
+	var session = {};
+	session.login = function(data) {
+		alert("user logged in with credentials " + data.name + " and " + data.password);
+		localStorage.setItem("session", data);
+	};
+	session.logout = function() {
+		localStorage.removeItem("session");
+	};
+	session.isLoggedIn = function() {
+		return localStorage.getItem("session") !== null;
+	};
+	return session;
+})
+.factory('accountService', function($resource) {
+	var service = {};
+	service.register = function(account, success, failure) {
+		var Account = $resource("/basic-web-app/rest/accounts");
+		Account.save({}, account, success, failure);
+	};
+	service.userExists = function(account, success, failure) {
+		var Account = $resource("/basic-web-app/rest/accounts");
+		var data = Account.get({name:account.name}, function() {
+			var accounts = data.accounts;
+			if (accounts.length !== 0) {
+				success(accounts[0]);
+			} else {
+				failure();
+			}
+		},
+		failure);
+	};
+	return service;
+})
+.controller('LoginCtrl', function($scope, sessionService, accountService, $state) {
 	$scope.login = function() {
-		alert('user logged in with ' + $scope.account.name + ' and ' + $scope.account.password);
+		accountService.userExists($scope.account, function(account) {
+			sessionService.login(account);
+			$state.go("home");
+		}, 
+		function() {
+			alert("Error loggin in user");
+		});
 	};
 })
-.controller('RegisterCtrl', function($scope) {
+.controller('RegisterCtrl', function($scope, sessionService, $state, accountService) {
 	$scope.register = function() {
-		alert('user registered in with ' + $scope.account.name + ' and ' + $scope.account.password);
+		accountService.register($scope.account, 
+		function(returnedData) {
+			sessionService.login(returnedData);
+			$state.go("home");
+		},
+		function() {
+			alert("Error registering user");
+		});
 	};
 });
